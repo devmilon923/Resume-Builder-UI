@@ -5,6 +5,7 @@ import QueryProvider from "@/providers/QueryClient";
 
 import { CookiesProvider } from "next-client-cookies/server";
 import AuthProvider from "@/providers/AuthContext";
+import Navbar from "@/components/ui/navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,9 @@ export default function RootLayout({
       >
         <CookiesProvider>
           <QueryProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <main className="">{children}</main>
+            </AuthProvider>
           </QueryProvider>
         </CookiesProvider>
       </body>

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { useLoginUser } from "@/utils/api/endpoints";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { useCookies } from "next-client-cookies";
+
 import z from "zod";
 import { useRouter } from "next/navigation";
 
@@ -47,12 +47,6 @@ export default function page() {
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     const result: any = await login.mutateAsync(data);
-    const role = result.data.role;
-    if (role === "admin") {
-      return router.push("/admin");
-    } else if (role === "user") {
-      return router.push("/user");
-    }
   }
 
   return (

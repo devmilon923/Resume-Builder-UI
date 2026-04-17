@@ -1,13 +1,8 @@
 "use client";
 
-import { useProfile } from "@/utils/api/endpoints";
+import { useLogout, useProfile } from "@/utils/api/endpoints";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCookies } from "next-client-cookies";
-import {
-  createContext,
-  ReactNode,
-  useContext,
-} from "react";
+import { createContext, ReactNode, useContext } from "react";
 
 interface User {
   id: number;
@@ -18,22 +13,23 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  logout: () => void;
+  logoutHelper: () => void;
   hasRole: (role: string | string[]) => boolean;
   isLoading: boolean;
 }
 
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
-  const cookies = useCookies()
+  const logout = useLogout();
   const { data: user, isLoading } = useProfile();
   const queryClient = useQueryClient();
-  const logout = () => {
-    cookies.remove("token");
-    cookies.remove("refreshToken");
-    queryClient.clear()
+  const logoutHelper = async () => {
+    await logout.mutateAsync();
+    // Immediately clear the cached profile so the UI doesn't wait for
+    // a refetch that would fail anyway (cookies are gone).
+    // queryClient.setQueryData(["profile"], null);
+    queryClient.clear();
   };
 
   const hasRole = (role: string | string[]) => {
@@ -46,10 +42,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     return role.includes(user.role);
   };
   return (
-    <AuthContext.Provider value={{ user, logout, hasRole, isLoading }}>
+    <AuthContext.Provider value={{ user, logoutHelper, hasRole, isLoading }}>
       {children}
     </AuthContext.Provider>
-
   );
 }
 export function useAuth() {

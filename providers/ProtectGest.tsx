@@ -3,7 +3,7 @@ import { ReactNode, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import { useRouter } from "next/navigation";
 
-export default function ProtectUserRoute({
+export default function ProtectGestRoute({
   children,
 }: {
   children: ReactNode;
@@ -12,21 +12,22 @@ export default function ProtectUserRoute({
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        router.push("/auth/login");
-      } else if (user.role !== "user") {
-        router.push("/unauthorized");
+    if (!isLoading && user) {
+      if (user.role === "admin") {
+        router.push("/dashboard");
+      } else {
+        router.push("/user");
       }
     }
   }, [isLoading, user, router]);
 
-  if (isLoading) return <>Loading</>;
+  if (isLoading) return <>Loading...</>;
 
-  if (user?.role === "user") {
+  // Only show the login/guest page if NO user is logged in
+  if (!user) {
     return <>{children}</>;
   }
-  
+
+  // Return null or a loader while the redirect is happening
   return null;
 }
-
