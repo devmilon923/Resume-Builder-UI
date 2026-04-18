@@ -29,11 +29,22 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, FieldPath, useForm } from "react-hook-form";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  MapPin,
+  User,
+} from "lucide-react";
 import z from "zod";
 
 function RegisterPage() {
-  const [step, setStep] = useState<number>(3);
+  const [step, setStep] = useState<number>(1);
+  const [showPassword, setShowPassword] = useState(false);
   const [activeField, setActiveField] = useState<
     FieldPath<z.infer<typeof schema>>[]
   >([]);
@@ -139,7 +150,7 @@ function RegisterPage() {
   });
   useEffect(() => {
     if (step === 1) {
-      setActiveField(["name", "address"]);
+      setActiveField(["name"]);
     } else if (step === 2) {
       setActiveField(["password"]);
     } else if (step === 3) {
@@ -203,79 +214,147 @@ function RegisterPage() {
                   name="name"
                   control={form.control}
                   render={({ field, fieldState }) => (
-                    <Field>
-                      <Input placeholder="Enter your name" {...field} />
-                      {fieldState.error && (
-                        <FieldError>{fieldState.error.message}</FieldError>
-                      )}
-                    </Field>
-                  )}
-                />
-                <Controller
-                  name="address"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field>
-                      <Input {...field} placeholder="Enter your address" />
-                      {fieldState.error && (
-                        <FieldError>{fieldState.error.message}</FieldError>
-                      )}
-                    </Field>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Field>
+                        <FieldLabel className="text-sm font-bold text-slate-700 mb-2 ml-1 flex items-center gap-2">
+                          <User className="w-4 h-4 text-green-600" />
+                          Full Name
+                        </FieldLabel>
+                        <div className="relative group">
+                          <Input
+                            placeholder="Type your full name here..."
+                            className="pl-4 h-12 bg-slate-50/50 border-slate-200 focus:bg-white transition-all duration-300 rounded-xl focus:ring-4 focus:ring-green-500/10 focus:border-green-500 pr-10"
+                            {...field}
+                          />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300 group-focus-within:text-green-400 transition-colors duration-300">
+                            {!fieldState.error && field.value && (
+                              <Check className="w-5 h-5" />
+                            )}
+                          </div>
+                        </div>
+                        <AnimatePresence mode="wait">
+                          {fieldState.error && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                            >
+                              <FieldError className="mt-2 ml-1 text-xs font-medium flex items-center gap-1">
+                                {fieldState.error.message}
+                              </FieldError>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </Field>
+                    </motion.div>
                   )}
                 />
               </FieldGroup>
             )}
 
             {step === 2 && (
-              <Card>
-                <CardHeader>Step 2</CardHeader>
-                <CardContent>
-                  <Field>
-                    <Controller
-                      name="password"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Controller
+                  name="password"
+                  control={form.control}
+                  render={({ field, fieldState }) => {
+                    return (
+                      <Field>
+                        <FieldLabel className="text-sm font-bold text-slate-700 mb-2 ml-1 flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-green-600" />
+                          Password
+                        </FieldLabel>
+                        <div className="relative group">
                           <Input
-                            type="password"
-                            placeholder="Enter password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Create a strong password..."
+                            className="pl-4 h-12 bg-slate-50/50 border-slate-200 focus:bg-white transition-all duration-300 rounded-xl focus:ring-4 focus:ring-green-500/10 focus:border-green-500 pr-12"
                             {...field}
                           />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-green-600 transition-colors duration-200 cursor-pointer"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="w-5 h-5" />
+                            ) : (
+                              <Eye className="w-5 h-5" />
+                            )}
+                          </button>
+                        </div>
+                        <AnimatePresence mode="wait">
                           {fieldState.error && (
-                            <FieldError>{fieldState.error.message}</FieldError>
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                            >
+                              <FieldError className="mt-2 ml-1 text-xs font-medium">
+                                {fieldState.error.message}
+                              </FieldError>
+                            </motion.div>
                           )}
-                        </Field>
-                      )}
-                    />
-                  </Field>
-                </CardContent>
-              </Card>
+                        </AnimatePresence>
+                      </Field>
+                    );
+                  }}
+                />
+              </motion.div>
             )}
 
             {step === 3 && (
-              <div className="space-y-5">
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.1 },
+                  },
+                }}
+                initial="hidden"
+                animate="visible"
+                className="space-y-10"
+              >
+                {/* Gender Section */}
                 <Controller
                   name="gender"
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field>
-                      <FieldLabel className="flex flex-col items-center w-full text-xl">
-                        Gender
-                      </FieldLabel>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center justify-between">
-                        {genderOptions.map((gender, index) => {
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="h-6 w-1 bg-green-500 rounded-full" />
+                        <FieldLabel className="text-xl font-bold text-slate-800">
+                          Gender
+                        </FieldLabel>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {genderOptions.map((gender) => {
                           const isSelected = selectedGender === gender.value;
                           return (
                             <motion.button
                               key={gender.value}
-                              whileHover={{ scale: 1.02 }}
+                              variants={{
+                                hidden: { y: 20, opacity: 0 },
+                                visible: { y: 0, opacity: 1 },
+                              }}
+                              whileHover={{ scale: 1.02, y: -5 }}
                               whileTap={{ scale: 0.98 }}
                               type="button"
                               onClick={() => field.onChange(gender.value)}
                               className={`relative cursor-pointer group flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all duration-300 h-40 ${
                                 isSelected
-                                  ? "border-green-500 bg-green-50 shadow-md"
-                                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm"
+                                  ? "border-green-500 bg-green-50 shadow-lg shadow-green-100"
+                                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md"
                               }`}
                             >
                               <div className="mb-4 bg-slate-50 rounded-full p-3 group-hover:bg-green-100 transition-colors duration-300">
@@ -290,9 +369,6 @@ function RegisterPage() {
                               >
                                 {gender.label}
                               </h3>
-                              <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">
-                                {gender.description}
-                              </p>
 
                               <AnimatePresence>
                                 {isSelected && (
@@ -311,40 +387,50 @@ function RegisterPage() {
                         })}
                       </div>
                       {fieldState.error && (
-                        <FieldError>{fieldState.error.message}</FieldError>
+                        <FieldError className="mt-2">
+                          {fieldState.error.message}
+                        </FieldError>
                       )}
-                      <FieldDescription>
-                        Lorem ipsum dolor sit amet consectetur, adipisicing
-                        elit. Ad distinctio adipisci porro expedita voluptatem
-                        consectetur voluptate nemo commodi itaque reprehenderit.
+                      <FieldDescription className="mt-4 text-slate-400 text-[10px] italic">
+                        Please select the gender you most identify with for
+                        personalized content.
                       </FieldDescription>
                     </Field>
                   )}
                 />
+
+                {/* Profession Section */}
                 <Controller
                   name="profession"
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field>
-                      <FieldLabel className="flex flex-col items-center w-full text-xl">
-                        Profession
-                      </FieldLabel>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="h-6 w-1 bg-green-500 rounded-full" />
+                        <FieldLabel className="text-xl font-bold text-slate-800">
+                          Profession
+                        </FieldLabel>
+                      </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center justify-between">
-                        {professionOptions.map((profession, index) => {
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {professionOptions.map((profession) => {
                           const isSelected =
                             selectedProfession === profession.value;
                           return (
                             <motion.button
                               key={profession.value}
-                              whileHover={{ scale: 1.02 }}
+                              variants={{
+                                hidden: { y: 20, opacity: 0 },
+                                visible: { y: 0, opacity: 1 },
+                              }}
+                              whileHover={{ scale: 1.02, y: -5 }}
                               whileTap={{ scale: 0.98 }}
                               type="button"
                               onClick={() => field.onChange(profession.value)}
                               className={`relative cursor-pointer group flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all duration-300 h-40 ${
                                 isSelected
-                                  ? "border-green-500 bg-green-50 shadow-md"
-                                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm"
+                                  ? "border-green-500 bg-green-50 shadow-lg shadow-green-100"
+                                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md"
                               }`}
                             >
                               <div className="mb-4 bg-slate-50 rounded-full p-3 group-hover:bg-green-100 transition-colors duration-300">
@@ -359,9 +445,6 @@ function RegisterPage() {
                               >
                                 {profession.label}
                               </h3>
-                              <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">
-                                {profession.description}
-                              </p>
 
                               <AnimatePresence>
                                 {isSelected && (
@@ -380,52 +463,105 @@ function RegisterPage() {
                         })}
                       </div>
                       {fieldState.error && (
-                        <FieldError>{fieldState.error.message}</FieldError>
+                        <FieldError className="mt-2">
+                          {fieldState.error.message}
+                        </FieldError>
                       )}
-                      <FieldDescription>
-                        Lorem ipsum dolor sit amet consectetur, adipisicing
-                        elit. Ad distinctio adipisci porro expedita voluptatem
-                        consectetur voluptate nemo commodi itaque reprehenderit.
+                      <FieldDescription className="mt-4 text-slate-400 text-[10px] italic">
+                        Selecting your profession helps us tailor your
+                        experience to your specific career path.
                       </FieldDescription>
                     </Field>
                   )}
                 />
-              </div>
+              </motion.div>
             )}
+
             {step === 4 && (
-              <Field>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Controller
-                  name="password"
+                  name="email"
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field>
-                      <Input
-                        type="password"
-                        placeholder="Enter password"
-                        {...field}
-                      />
-                      {fieldState.error && (
-                        <FieldError>{fieldState.error.message}</FieldError>
-                      )}
-                      <FieldDescription>
-                        Lorem ipsum dolor sit amet consectetur, adipisicing
-                        elit. Ad distinctio adipisci porro expedita voluptatem
-                        consectetur voluptate nemo commodi itaque reprehenderit.
+                      <FieldLabel className="text-sm font-bold text-slate-700 mb-2 ml-1 flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-green-600" />
+                        Email Address
+                      </FieldLabel>
+                      <div className="relative group">
+                        <Input
+                          placeholder="john@example.com"
+                          className="pl-4 h-12 bg-slate-50/50 border-slate-200 focus:bg-white transition-all duration-300 rounded-xl focus:ring-4 focus:ring-green-500/10 focus:border-green-500 pr-10"
+                          {...field}
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300 group-focus-within:text-green-400 transition-colors duration-300">
+                          {!fieldState.error && field.value && (
+                            <Check className="w-5 h-5" />
+                          )}
+                        </div>
+                      </div>
+                      <AnimatePresence mode="wait">
+                        {fieldState.error && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                          >
+                            <FieldError className="mt-2 ml-1 text-xs font-medium">
+                              {fieldState.error.message}
+                            </FieldError>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                      <FieldDescription className="mt-4 text-slate-400 text-[10px] leading-relaxed">
+                        We'll send you a verification link to this email address
+                        once you complete the registration.
                       </FieldDescription>
                     </Field>
                   )}
                 />
-              </Field>
+              </motion.div>
             )}
           </form>
         </CardContent>
-        <CardFooter>
-          <Button className="cursor-pointer" onClick={goBack}>
-            Back
+        <CardFooter className="flex justify-between items-center border-t border-slate-100 p-6 bg-slate-50/50">
+          <Button
+            variant="ghost"
+            className={`cursor-pointer gap-2 transition-all rounded-full px-8 duration-300 ${step === 1 ? "opacity-0 pointer-events-none" : "hover:bg-white hover:shadow-sm"}`}
+            onClick={goBack}
+            disabled={step === 1}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Previous
           </Button>
-          <Button className="cursor-pointer" onClick={goNext}>
-            Next
-          </Button>
+
+          {step < 4 ? (
+            <Button
+              className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-8 rounded-full shadow-lg shadow-green-200 transition-all duration-300 group gap-2"
+              onClick={goNext}
+            >
+              Next Step
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-10 rounded-xl shadow-lg shadow-green-200 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              onClick={(e) => {
+                // Since this button is inside the form, handleSubmit will run if we don't preventDefault
+                // But we want to make sure the last step is valid too
+                if (step === 4) {
+                  // form.handleSubmit(onSubmit)(e) is handled by type="submit"
+                }
+              }}
+            >
+              Complete Registration
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </div>
