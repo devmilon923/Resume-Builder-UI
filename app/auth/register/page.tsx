@@ -4,11 +4,9 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
   FieldDescription,
@@ -17,135 +15,57 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, FieldPath, useForm } from "react-hook-form";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
+  BadgeCheck,
+  Briefcase,
+  Calendar,
   Check,
+  CheckCircle2,
   Eye,
   EyeOff,
   Lock,
   Mail,
-  MapPin,
+  PartyPopper,
+  ShieldCheck,
   User,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import z from "zod";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import {
+  genderOptions,
+  professionOptions,
+  registerSchema,
+  TRegister,
+} from "@/utils/api/validations";
+import { useCreateUser, useVerifyAccount } from "@/utils/api/endpoints";
 
 function RegisterPage() {
   const [step, setStep] = useState<number>(1);
   const [showPassword, setShowPassword] = useState(false);
-  const [activeField, setActiveField] = useState<
-    FieldPath<z.infer<typeof schema>>[]
-  >([]);
-  // Zod schema
-  const schema = z.object({
-    name: z.string().min(3, "Name must be at least 3 characters long"),
-    email: z.email("Invalid email address"),
-    password: z
-      .string()
-      .min(6, "Password must be at least 6 characters long")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number")
-      .regex(
-        /[!@#$%^&*]/,
-        "Password must contain at least one special character (!@#$%^&*)",
-      ),
-    gender: z.enum(["Male", "Female", "Others"], {
-      error: "Please select your gender",
-    }),
-    profession: z.enum(["Student", "Teacher", "Doctor", "Engineer"], {
-      error: "Please select your profession",
-    }),
-    address: z.string().min(4, "Address must be at least 4 characters long"),
-    isRemember: z.boolean(),
-  });
-  // Profession
-  interface EmojiChoiceOption {
-    value: z.infer<typeof schema.shape.profession>;
-    emoji: string;
-    label: string;
-    description?: string;
-  }
-  const professionOptions: EmojiChoiceOption[] = [
-    {
-      value: "Student",
-      emoji:
-        "https://img.icons8.com/?size=100&id=12197&format=png&color=000000",
-      label: "Student",
-      description: "Select if you are a student",
-    },
-    {
-      value: "Teacher",
-      emoji:
-        "https://img.icons8.com/?size=100&id=owZ150JlNlBu&format=png&color=000000",
-      label: "Teacher",
-      description: "Select if you are a teacher",
-    },
-    {
-      value: "Doctor",
-      emoji:
-        "https://img.icons8.com/?size=100&id=fhnv2wJYtCWH&format=png&color=000000",
-      label: "Doctor",
-      description: "Select if you are a doctor",
-    },
-    {
-      value: "Engineer",
-      emoji:
-        "https://img.icons8.com/?size=100&id=41237&format=png&color=000000",
-      label: "Engineer",
-      description: "Select if you are an engineer",
-    },
-  ];
-  interface GenderEmojiChoiceOption {
-    value: z.infer<typeof schema.shape.gender>;
-    emoji: string;
-    label: string;
-    description?: string;
-  }
-  const genderOptions: GenderEmojiChoiceOption[] = [
-    {
-      value: "Male",
-      emoji:
-        "https://img.icons8.com/?size=100&id=18738&format=png&color=000000",
-      label: "Male",
-      description: "Select if you are a male",
-    },
-    {
-      value: "Female",
-      emoji:
-        "https://img.icons8.com/?size=100&id=23256&format=png&color=000000",
-      label: "Female",
-      description: "Select if you are a female",
-    },
-    {
-      value: "Others",
-      emoji:
-        "https://img.icons8.com/?size=100&id=vri4BrW3A8Uj&format=png&color=000000",
-      label: "Others",
-      description: "Select if you are others",
-    },
-  ];
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const [activeField, setActiveField] = useState<FieldPath<TRegister>[]>([]);
+  const [verifiedUser, setVerifiedUser] = useState<any>(null);
+  const router = useRouter();
+  const register = useCreateUser();
+  const verifyAccount = useVerifyAccount();
+  const form = useForm<TRegister>({
+    resolver: zodResolver(registerSchema),
     mode: "onChange",
     defaultValues: {
       name: "",
       email: "",
       password: "",
-      address: "",
-      isRemember: false,
+      otp: "",
     },
   });
   useEffect(() => {
@@ -157,6 +77,8 @@ function RegisterPage() {
       setActiveField(["profession", "gender"]);
     } else if (step === 4) {
       setActiveField(["email"]);
+    } else if (step === 5) {
+      setActiveField(["otp"]);
     }
   }, [step]);
 
@@ -166,10 +88,21 @@ function RegisterPage() {
   };
   const goNext = async () => {
     const isValid = await stepValidation();
-    if (isValid) {
+    if (!isValid) return;
+
+    if (step === 4) {
+      try {
+        const result: any = await register.mutateAsync(form.getValues());
+        setStep(5);
+        console.log(result.data);
+      } catch (error: any) {
+        console.log(error?.message);
+      }
+    } else if (step < 5) {
       setStep(step + 1);
     }
   };
+
   const goBack = async () => {
     if (step > 1) {
       setStep(step - 1);
@@ -177,8 +110,19 @@ function RegisterPage() {
   };
   const selectedProfession = form.watch("profession");
   const selectedGender = form.watch("gender");
-  const onSubmit = (data: z.infer<typeof schema>) => {
-    console.log(data);
+  const onSubmit = async (data: TRegister) => {
+    if (step === 5) {
+      try {
+        const result: any = await verifyAccount.mutateAsync(
+          parseInt(data.otp as string),
+        );
+        setVerifiedUser(result.data);
+        setStep(6);
+        console.log("Account verified successfully", result.data);
+      } catch (error: any) {
+        console.log(error?.message);
+      }
+    }
   };
   return (
     <div className="max-w-xl mx-auto my-12">
@@ -189,36 +133,30 @@ function RegisterPage() {
               Registration
             </span>
             <span className="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-              Step {step} of 4
+              Step {step} of 6
             </span>
           </div>
           <div className="relative h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${(step / 4) * 100}%` }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              className="absolute top-0 left-0 h-full bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.3)]"
+            <div
+              style={{ width: `${(step / 6) * 100}%` }}
+              className="absolute top-0 left-0 h-full bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.3)] transition-all duration-500 ease-in-out"
             />
           </div>
           <div className="flex justify-end mt-1">
             <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">
-              {Math.round((step / 4) * 100)}% Complete
+              {Math.round((step / 6) * 100)}% Complete
             </span>
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form id="register-form" onSubmit={form.handleSubmit(onSubmit)}>
             {step === 1 && (
               <FieldGroup>
                 <Controller
                   name="name"
                   control={form.control}
                   render={({ field, fieldState }) => (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <Field>
                         <FieldLabel className="text-sm font-bold text-slate-700 mb-2 ml-1 flex items-center gap-2">
                           <User className="w-4 h-4 text-green-600" />
@@ -236,32 +174,22 @@ function RegisterPage() {
                             )}
                           </div>
                         </div>
-                        <AnimatePresence mode="wait">
-                          {fieldState.error && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                            >
-                              <FieldError className="mt-2 ml-1 text-xs font-medium flex items-center gap-1">
-                                {fieldState.error.message}
-                              </FieldError>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                        {fieldState.error && (
+                          <div className="animate-in fade-in zoom-in-95 duration-200">
+                            <FieldError className="mt-2 ml-1 text-xs font-medium flex items-center gap-1">
+                              {fieldState.error.message}
+                            </FieldError>
+                          </div>
+                        )}
                       </Field>
-                    </motion.div>
+                    </div>
                   )}
                 />
               </FieldGroup>
             )}
 
             {step === 2 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              <div className="animate-in fade-in zoom-in-95 duration-300">
                 <Controller
                   name="password"
                   control={form.control}
@@ -291,39 +219,22 @@ function RegisterPage() {
                             )}
                           </button>
                         </div>
-                        <AnimatePresence mode="wait">
-                          {fieldState.error && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                            >
-                              <FieldError className="mt-2 ml-1 text-xs font-medium">
-                                {fieldState.error.message}
-                              </FieldError>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                        {fieldState.error && (
+                          <div className="animate-in fade-in zoom-in-95 duration-200">
+                            <FieldError className="mt-2 ml-1 text-xs font-medium">
+                              {fieldState.error.message}
+                            </FieldError>
+                          </div>
+                        )}
                       </Field>
                     );
                   }}
                 />
-              </motion.div>
+              </div>
             )}
 
             {step === 3 && (
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0 },
-                  visible: {
-                    opacity: 1,
-                    transition: { staggerChildren: 0.1 },
-                  },
-                }}
-                initial="hidden"
-                animate="visible"
-                className="space-y-10"
-              >
+              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-300">
                 {/* Gender Section */}
                 <Controller
                   name="gender"
@@ -341,20 +252,14 @@ function RegisterPage() {
                         {genderOptions.map((gender) => {
                           const isSelected = selectedGender === gender.value;
                           return (
-                            <motion.button
+                            <button
                               key={gender.value}
-                              variants={{
-                                hidden: { y: 20, opacity: 0 },
-                                visible: { y: 0, opacity: 1 },
-                              }}
-                              whileHover={{ scale: 1.02, y: -5 }}
-                              whileTap={{ scale: 0.98 }}
                               type="button"
                               onClick={() => field.onChange(gender.value)}
-                              className={`relative cursor-pointer group flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all duration-300 h-40 ${
+                              className={`relative cursor-pointer group flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all duration-300 h-40 active:scale-95 animate-in fade-in slide-in-from-bottom-2 ${
                                 isSelected
                                   ? "border-green-500 bg-green-50 shadow-lg shadow-green-100"
-                                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md"
+                                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md hover:-translate-y-1"
                               }`}
                             >
                               <div className="mb-4 bg-slate-50 rounded-full p-3 group-hover:bg-green-100 transition-colors duration-300">
@@ -370,19 +275,12 @@ function RegisterPage() {
                                 {gender.label}
                               </h3>
 
-                              <AnimatePresence>
-                                {isSelected && (
-                                  <motion.div
-                                    initial={{ scale: 0, rotate: -45 }}
-                                    animate={{ scale: 1, rotate: 0 }}
-                                    exit={{ scale: 0, rotate: 45 }}
-                                    className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1.5 shadow-lg border-2 border-white"
-                                  >
-                                    <Check className="w-3 h-3 stroke-3" />
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </motion.button>
+                              {isSelected && (
+                                <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1.5 shadow-lg border-2 border-white animate-in zoom-in duration-200">
+                                  <Check className="w-3 h-3 stroke-3" />
+                                </div>
+                              )}
+                            </button>
                           );
                         })}
                       </div>
@@ -417,20 +315,14 @@ function RegisterPage() {
                           const isSelected =
                             selectedProfession === profession.value;
                           return (
-                            <motion.button
+                            <button
                               key={profession.value}
-                              variants={{
-                                hidden: { y: 20, opacity: 0 },
-                                visible: { y: 0, opacity: 1 },
-                              }}
-                              whileHover={{ scale: 1.02, y: -5 }}
-                              whileTap={{ scale: 0.98 }}
                               type="button"
                               onClick={() => field.onChange(profession.value)}
-                              className={`relative cursor-pointer group flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all duration-300 h-40 ${
+                              className={`relative cursor-pointer group flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all duration-300 h-40 active:scale-95 animate-in fade-in slide-in-from-bottom-2 ${
                                 isSelected
                                   ? "border-green-500 bg-green-50 shadow-lg shadow-green-100"
-                                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md"
+                                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md hover:-translate-y-1"
                               }`}
                             >
                               <div className="mb-4 bg-slate-50 rounded-full p-3 group-hover:bg-green-100 transition-colors duration-300">
@@ -446,19 +338,12 @@ function RegisterPage() {
                                 {profession.label}
                               </h3>
 
-                              <AnimatePresence>
-                                {isSelected && (
-                                  <motion.div
-                                    initial={{ scale: 0, rotate: -45 }}
-                                    animate={{ scale: 1, rotate: 0 }}
-                                    exit={{ scale: 0, rotate: 45 }}
-                                    className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1.5 shadow-lg border-2 border-white"
-                                  >
-                                    <Check className="w-3 h-3 stroke-3" />
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </motion.button>
+                              {isSelected && (
+                                <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1.5 shadow-lg border-2 border-white animate-in zoom-in duration-200">
+                                  <Check className="w-3 h-3 stroke-3" />
+                                </div>
+                              )}
+                            </button>
                           );
                         })}
                       </div>
@@ -474,15 +359,11 @@ function RegisterPage() {
                     </Field>
                   )}
                 />
-              </motion.div>
+              </div>
             )}
 
             {step === 4 && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-              >
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                 <Controller
                   name="email"
                   control={form.control}
@@ -504,19 +385,13 @@ function RegisterPage() {
                           )}
                         </div>
                       </div>
-                      <AnimatePresence mode="wait">
-                        {fieldState.error && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                          >
-                            <FieldError className="mt-2 ml-1 text-xs font-medium">
-                              {fieldState.error.message}
-                            </FieldError>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      {fieldState.error && (
+                        <div className="animate-in fade-in zoom-in-95 duration-200">
+                          <FieldError className="mt-2 ml-1 text-xs font-medium">
+                            {fieldState.error.message}
+                          </FieldError>
+                        </div>
+                      )}
                       <FieldDescription className="mt-4 text-slate-400 text-[10px] leading-relaxed">
                         We'll send you a verification link to this email address
                         once you complete the registration.
@@ -524,22 +399,191 @@ function RegisterPage() {
                     </Field>
                   )}
                 />
-              </motion.div>
+              </div>
+            )}
+            {step === 5 && (
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6 py-4">
+                <div className="flex flex-col items-center justify-center text-center space-y-4 mb-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-green-500 blur-[20px] opacity-20 rounded-full animate-pulse" />
+                    <div className="w-16 h-16 bg-white border-2 border-green-100 rounded-2xl flex items-center justify-center shadow-xl relative z-10 transition-transform hover:scale-105 duration-300">
+                      <ShieldCheck className="w-8 h-8 text-green-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800">
+                      Verification Code
+                    </h3>
+                    <p className="text-sm text-slate-500 mt-2 max-w-[260px] mx-auto leading-relaxed">
+                      We've sent a 6-digit secure code to your email. Enter it
+                      below to continue.
+                    </p>
+                  </div>
+                </div>
+
+                <Controller
+                  name="otp"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field className="flex flex-col items-center">
+                      <div className="relative group p-1 flex justify-center w-full">
+                        <InputOTP maxLength={5} {...field}>
+                          <InputOTPGroup className="gap-2 sm:gap-3">
+                            {[0, 1, 2, 3, 4].map((index) => (
+                              <InputOTPSlot
+                                key={index}
+                                index={index}
+                                className={`w-12 h-14 sm:w-14 sm:h-16 text-2xl font-bold rounded-xl border-2 transition-all duration-300 bg-slate-50/50 hover:bg-white
+                                  ${
+                                    fieldState.error
+                                      ? "border-red-200 focus:border-red-500 focus:ring-red-500/20 data-[active=true]:border-red-500"
+                                      : "border-slate-200 focus:border-green-500 focus:ring-green-500/20 data-[active=true]:border-green-500 data-[active=true]:bg-white data-[active=true]:shadow-md data-[active=true]:scale-105"
+                                  }
+                                `}
+                              />
+                            ))}
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      {fieldState.error && (
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-300 mt-6">
+                          <FieldError className="text-sm font-medium px-4 py-2 bg-red-50 text-red-600 rounded-full flex items-center gap-2 shadow-sm border border-red-100">
+                            <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                            {fieldState.error.message}
+                          </FieldError>
+                        </div>
+                      )}
+                    </Field>
+                  )}
+                />
+
+                <div className="text-center mt-8">
+                  <p className="text-sm text-slate-500">
+                    Didn't receive a code?{" "}
+                    <button
+                      type="button"
+                      className="font-semibold text-green-600 hover:text-green-700 hover:underline transition-all"
+                    >
+                      Resend
+                    </button>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {step === 6 && verifiedUser && (
+              <div className="animate-in fade-in zoom-in-95 duration-500 py-6">
+                <div className="flex flex-col items-center text-center space-y-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-green-500 blur-[30px] opacity-20 rounded-full animate-pulse" />
+                    <div className="w-24 h-24 bg-green-50 rounded-3xl flex items-center justify-center shadow-inner relative z-10 animate-bounce duration-[2000ms]">
+                      <PartyPopper className="w-12 h-12 text-green-600" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 bg-white rounded-full p-2 shadow-lg animate-in zoom-in duration-500 delay-300">
+                      <BadgeCheck className="w-8 h-8 text-green-500" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                      Welcome aboard!
+                    </h2>
+                    <p className="text-slate-500 font-medium">
+                      Your account has been successfully verified
+                    </p>
+                  </div>
+
+                  <div className="w-full bg-slate-50/80 backdrop-blur-sm rounded-3xl p-6 border border-slate-100 space-y-4 shadow-sm">
+                    <div className="flex items-center gap-4 p-3 bg-white rounded-2xl shadow-sm border border-slate-50">
+                      <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                        <User className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Full Name
+                        </p>
+                        <p className="text-sm font-bold text-slate-700">
+                          {verifiedUser.name}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-3 bg-white rounded-2xl shadow-sm border border-slate-50">
+                      <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <Mail className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Email Address
+                        </p>
+                        <p className="text-sm font-bold text-slate-700">
+                          {verifiedUser.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-slate-50">
+                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                          <Briefcase className="w-4 h-4 text-purple-600" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">
+                            Profession
+                          </p>
+                          <p className="text-xs font-bold text-slate-700">
+                            {verifiedUser.profession}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-slate-50">
+                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                          <Calendar className="w-4 h-4 text-orange-600" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">
+                            Status
+                          </p>
+                          <div className="flex items-center gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <p className="text-xs font-bold text-green-600">
+                              Verified
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 w-full">
+                    <Button
+                      onClick={() => router.push("/auth/login")}
+                      className="w-full h-14 cursor-pointer bg-slate-900 hover:bg-black text-white rounded-2xl font-bold shadow-xl shadow-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2 group"
+                    >
+                      Access Your Account
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
             )}
           </form>
         </CardContent>
         <CardFooter className="flex justify-between items-center border-t border-slate-100 p-6 bg-slate-50/50">
-          <Button
-            variant="ghost"
-            className={`cursor-pointer gap-2 transition-all rounded-full px-8 duration-300 ${step === 1 ? "opacity-0 pointer-events-none" : "hover:bg-white hover:shadow-sm"}`}
-            onClick={goBack}
-            disabled={step === 1}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Previous
-          </Button>
+          {step !== 6 && (
+            <Button
+              variant="ghost"
+              className={`cursor-pointer gap-2 transition-all rounded-full px-8 duration-300 ${step === 1 ? "opacity-0 pointer-events-none" : "hover:bg-white hover:shadow-sm"}`}
+              onClick={goBack}
+              disabled={step === 1}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Previous
+            </Button>
+          )}
 
-          {step < 4 ? (
+          {step < 5 ? (
             <Button
               className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-8 rounded-full shadow-lg shadow-green-200 transition-all duration-300 group gap-2"
               onClick={goNext}
@@ -547,21 +591,15 @@ function RegisterPage() {
               Next Step
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
-          ) : (
+          ) : step === 5 ? (
             <Button
               type="submit"
+              form="register-form"
               className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-10 rounded-xl shadow-lg shadow-green-200 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-              onClick={(e) => {
-                // Since this button is inside the form, handleSubmit will run if we don't preventDefault
-                // But we want to make sure the last step is valid too
-                if (step === 4) {
-                  // form.handleSubmit(onSubmit)(e) is handled by type="submit"
-                }
-              }}
             >
               Complete Registration
             </Button>
-          )}
+          ) : null}
         </CardFooter>
       </Card>
     </div>

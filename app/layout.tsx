@@ -32,13 +32,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CookiesProvider>
-          <QueryProvider>
-            <AuthProvider>
-              <main className="">{children}</main>
-            </AuthProvider>
-          </QueryProvider>
-        </CookiesProvider>
+        <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

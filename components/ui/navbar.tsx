@@ -18,8 +18,8 @@ export default function Navbar() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -29,7 +29,9 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   function handleLogout() {
     logoutHelper();
     setMenuOpen(false);
@@ -39,7 +41,6 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
-        {/* Logo / Brand */}
         <Link
           href="/"
           className="flex items-center gap-2 text-lg font-semibold tracking-tight transition-opacity hover:opacity-80"
@@ -63,18 +64,15 @@ export default function Navbar() {
           <span>ResumeBuilder</span>
         </Link>
 
-        {/* Right side — Auth area */}
         <div className="flex items-center gap-2">
-          {isLoading ? (
+          {isLoading && isMounted ? (
             <Loader2 size={18} className="animate-spin text-muted-foreground" />
           ) : user ? (
-            /* ---- Logged-in: profile dropdown ---- */
-            <div ref={menuRef} className="relative">
+            <div className="relative">
               <button
                 onClick={() => setMenuOpen((prev) => !prev)}
                 className="flex items-center gap-2 rounded-full border border-border/70 bg-muted/50 px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
               >
-                {/* Avatar circle */}
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground uppercase">
                   {user.name?.charAt(0) || <User size={14} />}
                 </span>
@@ -89,10 +87,8 @@ export default function Navbar() {
                 />
               </button>
 
-              {/* Dropdown menu */}
               {menuOpen && (
                 <div className="absolute right-0 mt-2 w-52 origin-top-right animate-in fade-in slide-in-from-top-2 rounded-lg border border-border bg-popover p-1 shadow-lg">
-                  {/* User info header */}
                   <div className="border-b border-border px-3 py-2.5">
                     <p className="text-sm font-medium leading-none">
                       {user.name}
@@ -102,10 +98,9 @@ export default function Navbar() {
                     </p>
                   </div>
 
-                  {/* Menu items */}
                   <div className="py-1">
                     <Link
-                      href={user.role === "admin" ? "/admin" : "/user"}
+                      href={user.role === "admin" ? "/admin" : "/home"}
                       onClick={() => setMenuOpen(false)}
                       className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
                     >

@@ -16,12 +16,12 @@ export default function ProtectGestRoute({
       if (user.role === "admin") {
         router.push("/dashboard");
       } else {
-        router.push("/user");
+        router.push("/home");
       }
     }
   }, [isLoading, user, router]);
 
-  if (isLoading) return <>Loading...</>;
+  if (isLoading) return <>Loading</>;
 
   // Only show the login/guest page if NO user is logged in
   if (!user) {

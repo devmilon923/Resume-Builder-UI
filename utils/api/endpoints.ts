@@ -1,5 +1,5 @@
 import axios from "axios";
-import { TLogin } from "./validations";
+import { TLogin, TRegister } from "./validations";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const backendURL = process.env.NEXT_PUBLIC_Backend_URL;
@@ -45,7 +45,10 @@ api.interceptors.response.use(
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
-
+      const authState = hasAuthFlag();
+      if (!authState) {
+        return Promise.reject(error);
+      }
       try {
         const result = await axios.post(
           backendURL + "/auth/renew-token",
@@ -76,14 +79,35 @@ export const useLoginUser = () => {
       return result.data;
     },
     onSuccess: (data) => {
-      // Mark the user as "possibly authenticated" so future page loads
-      // will attempt to fetch the profile.
       setAuthFlag();
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
 };
+export const useCreateUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (inputs: TRegister) => {
+      const result = await api.post<TRegister>("/auth/register", inputs);
+      return result.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+};
 
+export const useResendOTP = () => {
+  return useMutation({
+    mutationFn: async () => {
+      const result = await api.post("/auth/resend-otp");
+      return result.data;
+    },
+    onSuccess: (data) => {
+      console.log("OTP resent successfully", data);
+    },
+  });
+};
 export const useProfile = () => {
   return useQuery({
     queryKey: ["profile"],
@@ -91,11 +115,21 @@ export const useProfile = () => {
       const result = await api.get("/user/profile");
       return result.data.data;
     },
-    // Only attempt to fetch the profile when the auth flag exists.
-    // Without the flag we know there are no cookies → skip the request.
-    // enabled: typeof window !== "undefined" && hasAuthFlag(),
-    // Auth failures should not be retried — the interceptor already
-    // tried renewing the token once; retrying just adds more delay.
+
+    enabled: typeof window !== "undefined" && hasAuthFlag(),
+    retry: false,
+  });
+};
+export const useVerifyAccount = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (otp: number) => {
+      const result = await api.patch("/auth/verify-account", { otp });
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
     retry: false,
   });
 };

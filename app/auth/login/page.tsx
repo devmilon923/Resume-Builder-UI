@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { motion, useReducedMotion } from "framer-motion";
 import { Chrome, Github, Twitter } from "lucide-react";
 import { useLoginUser } from "@/utils/api/endpoints";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import z from "zod";
+import { useAuth } from "@/providers/AuthContext";
 
 const socialProviders = [
   { name: "Google", icon: Chrome },
@@ -30,9 +30,8 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { setUser } = useAuth();
   const login = useLoginUser();
-  const shouldReduceMotion = useReducedMotion();
 
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
@@ -45,11 +44,11 @@ export default function LoginPage() {
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
-      await login.mutateAsync({
+      const result: any = await login.mutateAsync({
         email: data.email,
         password: data.password,
       });
-      // Redirect or handle success if not handled by mutateAsync
+      setUser(result.data);
     } catch (error) {
       console.error("Login failed", error);
     }
@@ -63,14 +62,8 @@ export default function LoginPage() {
         <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[100px]" />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          duration: 0.5,
-          ease: shouldReduceMotion ? "linear" : [0.16, 1, 0.3, 1],
-        }}
-        className="group w-full max-w-lg rounded-3xl overflow-hidden border border-border/60 bg-card/85 p-8 backdrop-blur-xl sm:p-10 relative shadow-xl"
+      <div
+        className="group w-full max-w-lg rounded-3xl overflow-hidden border border-border/60 bg-card/85 p-8 backdrop-blur-xl sm:p-10 relative shadow-xl animate-in fade-in slide-in-from-bottom-5 duration-500"
         role="form"
         aria-labelledby="login-title"
       >
@@ -78,7 +71,7 @@ export default function LoginPage() {
           aria-hidden="true"
           className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 -z-10"
         />
-        
+
         <div className="mb-8 space-y-2 text-center">
           <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.28em] text-muted-foreground">
             Sign In
@@ -182,7 +175,9 @@ export default function LoginPage() {
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
-                  <span className="group-hover/label:text-foreground transition-colors select-none">Remember me</span>
+                  <span className="group-hover/label:text-foreground transition-colors select-none">
+                    Remember me
+                  </span>
                 </label>
               )}
             />
@@ -204,9 +199,17 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-8 text-center text-xs text-muted-foreground leading-relaxed">
-          By continuing you agree to our <a href="#" className="underline hover:text-foreground">terms of service</a> and <a href="#" className="underline hover:text-foreground">privacy policy</a>.
+          By continuing you agree to our{" "}
+          <a href="#" className="underline hover:text-foreground">
+            terms of service
+          </a>{" "}
+          and{" "}
+          <a href="#" className="underline hover:text-foreground">
+            privacy policy
+          </a>
+          .
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }
