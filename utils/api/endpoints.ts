@@ -157,7 +157,6 @@ export const useCreatePost = () => {
         emoji: string;
         label: string;
       } | null;
-      image: string;
     }) => {
       const result = await api.post("/post/create", data);
       return result.data;

@@ -36,10 +36,10 @@ export const CreatePost = () => {
     const data = { content, feeling: selectedFeeling };
     // Reset
     try {
-      const result = await createPost.mutateAsync({
-        content,
-        feeling: selectedFeeling,
-      });
+      const result = await createPost.mutateAsync(data);
+      if (result) {
+        console.log("Post created successfully");
+      }
     } catch (error) {}
     setContent("");
     setSelectedFeeling(null);
