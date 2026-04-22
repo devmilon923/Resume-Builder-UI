@@ -147,3 +147,33 @@ export const useLogout = () => {
     },
   });
 };
+
+export const useCreatePost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      content: string;
+      feeling: {
+        emoji: string;
+        label: string;
+      } | null;
+      image: string;
+    }) => {
+      const result = await api.post("/post/create", data);
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+};
+
+export const useGetAllPosts = () => {
+  return useQuery({
+    queryKey: ["posts"],
+    queryFn: async () => {
+      const result = await api.get("/post/get-all");
+      return result.data.data;
+    },
+  });
+};

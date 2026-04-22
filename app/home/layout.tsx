@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ProtectUserRoute from "@/providers/ProtectUser";
+import { HomeNavbar } from "@/components/home-navbar";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -11,5 +12,14 @@ export default function UserLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <ProtectUserRoute>{children}</ProtectUserRoute>;
+  return (
+    <ProtectUserRoute>
+      <div className="flex flex-col min-h-screen bg-muted/30">
+        <HomeNavbar />
+        <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6">
+          {children}
+        </main>
+      </div>
+    </ProtectUserRoute>
+  );
 }

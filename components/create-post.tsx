@@ -1,0 +1,147 @@
+"use client";
+
+import React, { useState } from "react";
+import { Smile, Send, X, Sparkles } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/providers/AuthContext";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { useCreatePost } from "@/utils/api/endpoints";
+
+const FEELINGS = [
+  { emoji: "😊", label: "Happy" },
+  { emoji: "😇", label: "Blessed" },
+  { emoji: "🤩", label: "Excited" },
+  { emoji: "😢", label: "Sad" },
+  { emoji: "🤔", label: "Thinking" },
+  { emoji: "😎", label: "Cool" },
+  { emoji: "😴", label: "Tired" },
+];
+
+export const CreatePost = () => {
+  const createPost = useCreatePost();
+  const { user } = useAuth();
+  const [content, setContent] = useState("");
+  const [showFeelings, setShowFeelings] = useState(false);
+  const [selectedFeeling, setSelectedFeeling] = useState<{
+    emoji: string;
+    label: string;
+  } | null>(null);
+
+  const handlePost = async () => {
+    if (!content.trim()) return;
+    console.log("Posting:");
+    const data = { content, feeling: selectedFeeling };
+    // Reset
+    try {
+      const result = await createPost.mutateAsync({
+        content,
+        feeling: selectedFeeling,
+      });
+    } catch (error) {}
+    setContent("");
+    setSelectedFeeling(null);
+  };
+
+  return (
+    <Card className="max-w-2xl w-full mx-auto border-none shadow-sm bg-card overflow-visible">
+      <CardContent className="p-4 w-full">
+        <div className="flex gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground uppercase overflow-hidden border border-border">
+            {user?.name?.charAt(0) || "U"}
+          </div>
+
+          <div className="flex-1 min-w-0 space-y-3">
+            <div className="relative">
+              <Textarea
+                placeholder={`What's on your mind, ${user?.name?.split(" ")[0] || "User"}?`}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="w-full min-h-[80px] resize-none rounded-none border-none bg-transparent p-0 text-[1rem] focus-visible:ring-0 placeholder:text-muted-foreground/60"
+              />
+
+              {selectedFeeling && (
+                <div className="flex items-center gap-1.5 mt-2 bg-muted/50 w-fit px-2 py-1 rounded-full border border-border/50 transition-all animate-in fade-in zoom-in-95">
+                  <span className="text-sm">{selectedFeeling.emoji}</span>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Feeling {selectedFeeling.label}
+                  </span>
+                  <button
+                    onClick={() => setSelectedFeeling(null)}
+                    className="ml-1 p-0.5 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between border-t pt-3">
+              <div className="flex items-center gap-1">
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className={cn(
+                      "text-muted-foreground hover:text-amber-500 hover:bg-amber-500/5 cursor-pointer",
+                      showFeelings && "text-amber-500 bg-amber-500/5",
+                    )}
+                    onClick={() => setShowFeelings(!showFeelings)}
+                  >
+                    <Smile className="size-5" />
+                  </Button>
+
+                  {showFeelings && (
+                    <div className="absolute bottom-full left-0 mb-2 z-50 w-64 rounded-xl border border-border bg-popover p-2 shadow-xl animate-in fade-in slide-in-from-bottom-2">
+                      <div className="grid grid-cols-4 gap-1">
+                        {FEELINGS.map((f) => (
+                          <button
+                            key={f.label}
+                            onClick={() => {
+                              setSelectedFeeling(f);
+                              setShowFeelings(false);
+                            }}
+                            className="flex flex-col items-center gap-1 rounded-lg p-2 transition-colors hover:bg-muted"
+                          >
+                            <span className="text-xl">{f.emoji}</span>
+                            <span className="text-[10px] font-medium text-muted-foreground">
+                              {f.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="h-4 w-px bg-border/60 mx-1" />
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/5 cursor-pointer gap-1.5 px-2"
+                >
+                  <Sparkles className="size-4" />
+                  <Link href="/home/advanced-editor">
+                    <span className="text-xs font-medium">Advanced Editor</span>
+                  </Link>
+                </Button>
+              </div>
+
+              <Button
+                onClick={handlePost}
+                disabled={!content.trim()}
+                className="gap-2 px-6 rounded-full shadow-md shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50"
+              >
+                <span className="font-semibold">Post</span>
+                <Send className="size-3.5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

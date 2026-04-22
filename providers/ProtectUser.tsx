@@ -25,7 +25,17 @@ export default function ProtectUserRoute({
     }
   }, [isLoading, user, router, isMounted]);
 
-  if (!isMounted || isLoading) return <>Loading</>;
+  if (!isMounted) return null;
+
+  if (isLoading && !user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="animate-pulse text-sm font-medium text-muted-foreground">
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   if (user?.role === "user") {
     return <>{children}</>;

@@ -1,5 +1,5 @@
 "use client";
-
+import { CldUploadWidget } from "next-cloudinary";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -33,6 +33,7 @@ import {
   Mail,
   PartyPopper,
   ShieldCheck,
+  UploadCloud,
   User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -76,8 +77,10 @@ function RegisterPage() {
     } else if (step === 3) {
       setActiveField(["profession", "gender"]);
     } else if (step === 4) {
-      setActiveField(["email"]);
+      setActiveField(["image"]);
     } else if (step === 5) {
+      setActiveField(["email"]);
+    } else if (step === 6) {
       setActiveField(["otp"]);
     }
   }, [step]);
@@ -90,15 +93,15 @@ function RegisterPage() {
     const isValid = await stepValidation();
     if (!isValid) return;
 
-    if (step === 4) {
+    if (step === 5) {
       try {
         const result: any = await register.mutateAsync(form.getValues());
-        setStep(5);
+        setStep(6);
         console.log(result.data);
       } catch (error: any) {
         console.log(error?.message);
       }
-    } else if (step < 5) {
+    } else if (step < 6) {
       setStep(step + 1);
     }
   };
@@ -111,13 +114,13 @@ function RegisterPage() {
   const selectedProfession = form.watch("profession");
   const selectedGender = form.watch("gender");
   const onSubmit = async (data: TRegister) => {
-    if (step === 5) {
+    if (step === 6) {
       try {
         const result: any = await verifyAccount.mutateAsync(
           parseInt(data.otp as string),
         );
         setVerifiedUser(result.data);
-        setStep(6);
+        setStep(7);
         console.log("Account verified successfully", result.data);
       } catch (error: any) {
         console.log(error?.message);
@@ -133,18 +136,18 @@ function RegisterPage() {
               Registration
             </span>
             <span className="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-              Step {step} of 6
+              Step {step} of 7
             </span>
           </div>
           <div className="relative h-2 w-full bg-slate-100 rounded-full overflow-hidden">
             <div
-              style={{ width: `${(step / 6) * 100}%` }}
+              style={{ width: `${(step / 7) * 100}%` }}
               className="absolute top-0 left-0 h-full bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.3)] transition-all duration-500 ease-in-out"
             />
           </div>
           <div className="flex justify-end mt-1">
             <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">
-              {Math.round((step / 6) * 100)}% Complete
+              {Math.round((step / 7) * 100)}% Complete
             </span>
           </div>
         </CardHeader>
@@ -361,8 +364,68 @@ function RegisterPage() {
                 />
               </div>
             )}
-
             {step === 4 && (
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6 py-4">
+                <div className="flex flex-col items-center justify-center text-center space-y-4 mb-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-green-500 blur-[20px] opacity-20 rounded-full animate-pulse" />
+                    <div className="w-16 h-16 bg-white border-2 border-green-100 rounded-2xl flex items-center justify-center shadow-xl relative z-10 transition-transform hover:scale-105 duration-300">
+                      <UploadCloud className="w-8 h-8 text-green-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800">
+                      Upload Image
+                    </h3>
+                    <p className="text-sm text-slate-500 mt-2 max-w-[260px] mx-auto leading-relaxed">
+                      Upload your image to continue.
+                    </p>
+                  </div>
+                  <CldUploadWidget
+                    uploadPreset={
+                      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+                    }
+                    onSuccess={(result: any) => {
+                      if (
+                        result.event === "success" &&
+                        result.info?.secure_url
+                      ) {
+                        form.setValue("image", result.info.secure_url);
+                        console.log("Image uploaded:", result.info.secure_url);
+                      }
+                    }}
+                    onError={(error) => {
+                      console.error("Upload Error:", error);
+                    }}
+                  >
+                    {({ open }) => (
+                      <Button
+                        type="button"
+                        onClick={() => open()}
+                        variant="outline"
+                        className="w-full max-w-[200px] h-12 border-2 border-dashed border-green-200 hover:border-green-500 hover:bg-green-50 text-green-700 font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 group"
+                      >
+                        <UploadCloud className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        {form.watch("image") ? "Change Image" : "Upload Image"}
+                      </Button>
+                    )}
+                  </CldUploadWidget>
+                  {form.watch("image") && (
+                    <div className="mt-4 relative group animate-in zoom-in duration-300">
+                      <img
+                        src={form.watch("image")}
+                        alt="Profile Preview"
+                        className="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-lg"
+                      />
+                      <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <CheckCircle2 className="w-8 h-8 text-white" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {step === 5 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                 <Controller
                   name="email"
@@ -401,7 +464,7 @@ function RegisterPage() {
                 />
               </div>
             )}
-            {step === 5 && (
+            {step === 6 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6 py-4">
                 <div className="flex flex-col items-center justify-center text-center space-y-4 mb-6">
                   <div className="relative">
@@ -471,12 +534,12 @@ function RegisterPage() {
               </div>
             )}
 
-            {step === 6 && verifiedUser && (
+            {step === 7 && verifiedUser && (
               <div className="animate-in fade-in zoom-in-95 duration-500 py-6">
                 <div className="flex flex-col items-center text-center space-y-6">
                   <div className="relative">
                     <div className="absolute inset-0 bg-green-500 blur-[30px] opacity-20 rounded-full animate-pulse" />
-                    <div className="w-24 h-24 bg-green-50 rounded-3xl flex items-center justify-center shadow-inner relative z-10 animate-bounce duration-[2000ms]">
+                    <div className="w-24 h-24 bg-green-50 rounded-3xl flex items-center justify-center shadow-inner relative z-10 animate-bounce duration-2000">
                       <PartyPopper className="w-12 h-12 text-green-600" />
                     </div>
                     <div className="absolute -top-2 -right-2 bg-white rounded-full p-2 shadow-lg animate-in zoom-in duration-500 delay-300">
@@ -571,7 +634,7 @@ function RegisterPage() {
           </form>
         </CardContent>
         <CardFooter className="flex justify-between items-center border-t border-slate-100 p-6 bg-slate-50/50">
-          {step !== 6 && (
+          {step !== 7 && (
             <Button
               variant="ghost"
               className={`cursor-pointer gap-2 transition-all rounded-full px-8 duration-300 ${step === 1 ? "opacity-0 pointer-events-none" : "hover:bg-white hover:shadow-sm"}`}
@@ -583,7 +646,7 @@ function RegisterPage() {
             </Button>
           )}
 
-          {step < 5 ? (
+          {step < 6 ? (
             <Button
               className="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-8 rounded-full shadow-lg shadow-green-200 transition-all duration-300 group gap-2"
               onClick={goNext}
@@ -591,7 +654,7 @@ function RegisterPage() {
               Next Step
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
-          ) : step === 5 ? (
+          ) : step === 6 ? (
             <Button
               type="submit"
               form="register-form"

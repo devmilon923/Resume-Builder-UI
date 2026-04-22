@@ -7,6 +7,7 @@ const loginSchema = z.object({
 export const registerSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters long"),
   email: z.email("Invalid email address"),
+  image: z.string().min(1, "Image path is required"),
   password: z
     .string()
     .min(6, "Password must be at least 6 characters long")
@@ -23,8 +24,6 @@ export const registerSchema = z.object({
   profession: z.enum(["Student", "Teacher", "Doctor", "Engineer"], {
     error: "Please select your profession",
   }),
-  // OTPs should always be strings to preserve any leading zeros (e.g. "001234").
-  // Converting to an int strips out leading zeros and breaks formatting.
   otp: z.string().min(5, "OTP must be 5 digits long"),
 });
 export interface GenderEmojiChoiceOption {
