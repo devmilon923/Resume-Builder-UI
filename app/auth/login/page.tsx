@@ -57,7 +57,7 @@ export default function LoginPage() {
       </div>
 
       <div
-        className="group w-full max-w-lg rounded-3xl overflow-hidden border border-border/60 bg-card/85 p-8 backdrop-blur-xl sm:p-10 relative shadow-xl animate-in fade-in slide-in-from-bottom-5 duration-500"
+        className="group w-full max-w-lg rounded-3xl overflow-hidden border border-border/60 bg-card/85 p-8 backdrop-blur-xl sm:p-10 relative shadow-md animate-in fade-in slide-in-from-bottom-5 duration-500"
         role="form"
         aria-labelledby="login-title"
       >
