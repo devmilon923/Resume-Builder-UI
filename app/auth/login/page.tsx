@@ -4,19 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Chrome, Github, Twitter } from "lucide-react";
 import { useLoginUser } from "@/utils/api/endpoints";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import z from "zod";
 import { useAuth } from "@/providers/AuthContext";
-
-const socialProviders = [
-  { name: "Google", icon: Chrome },
-  { name: "Twitter", icon: Twitter },
-  { name: "GitHub", icon: Github },
-];
+import { Loader2 } from "lucide-react";
 
 const passwordSchema = z
   .string()
@@ -80,33 +74,11 @@ export default function LoginPage() {
             id="login-title"
             className="text-2xl font-semibold text-foreground sm:text-3xl tracking-tight"
           >
-            Access your workspace
+            Access your account
           </h1>
           <p className="text-sm text-muted-foreground">
-            Choose a social account or continue with email and password.
+            Enter your email and password to sign in to your account.
           </p>
-        </div>
-
-        <div className="mb-8 grid gap-3 sm:grid-cols-3">
-          {socialProviders.map((provider) => (
-            <Button
-              key={provider.name}
-              variant="outline"
-              className="flex items-center justify-center gap-2 rounded-full border-border/60 bg-card/70 text-sm text-foreground transition-all duration-300 hover:-translate-y-1 hover:text-primary hover:border-primary/50"
-              aria-label={`Continue with ${provider.name}`}
-            >
-              <provider.icon className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">{provider.name}</span>
-            </Button>
-          ))}
-        </div>
-
-        <div className="mb-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-border/70" />
-          <span className="text-xs uppercase tracking-[0.34em] text-muted-foreground">
-            or
-          </span>
-          <div className="h-px flex-1 bg-border/70" />
         </div>
 
         <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
@@ -183,7 +155,7 @@ export default function LoginPage() {
             />
             <button
               type="button"
-              className="text-xs font-medium text-primary underline-offset-4 hover:underline transition-all"
+              className="text-xs cursor-pointer font-medium text-primary underline-offset-4 hover:underline transition-all"
             >
               Forgot password?
             </button>
@@ -192,9 +164,16 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={login.isPending}
-            className="w-full h-12 rounded-full bg-primary text-primary-foreground font-semibold shadow-xl shadow-primary/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/30 disabled:opacity-70 disabled:translate-y-0"
+            className="w-full h-12 cursor-pointer rounded-full bg-primary text-primary-foreground font-semibold shadow-xl shadow-primary/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/30 disabled:opacity-70 disabled:translate-y-0"
           >
-            {login.isPending ? "Signing in..." : "Continue with Email"}
+            {login.isPending ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Logging in...
+              </div>
+            ) : (
+              "Login Now"
+            )}
           </Button>
         </form>
 
