@@ -58,7 +58,8 @@ export const HomeNavbar = () => {
         <div className="flex h-14 items-center">
           {NAV_ITEMS.map((item, index) => {
             const isProfile = "isProfile" in item && item.isProfile;
-            const href = ("href" in item ? item.href : "/home/profile") || "/home/profile";
+            const href =
+              ("href" in item ? item.href : "/home/profile") || "/home/profile";
             const label = "label" in item ? item.label : "";
             const isActive = pathname === href;
             const Icon = item.icon;
@@ -82,7 +83,7 @@ export const HomeNavbar = () => {
                     <div className="relative">
                       <div
                         className={cn(
-                          "flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground uppercase overflow-hidden border border-black transition-transform group-hover:scale-110",
+                          "flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground uppercase overflow-hidden  border-green-900 border-2 transition-transform group-hover:scale-110",
                           isActive &&
                             "ring-2 ring-primary ring-offset-2 ring-offset-background",
                         )}
