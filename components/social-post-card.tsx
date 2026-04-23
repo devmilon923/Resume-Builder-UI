@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import moment from "moment";
+import { useAddComment } from "@/utils/api/endpoints";
 
 interface Author {
   name: string;
@@ -71,8 +72,10 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
     string | number | null
   >(null);
   const [likedComments, setLikedComments] = useState<Set<string | number>>(
-    new Set()
+    new Set(),
   );
+  const addComments = useAddComment();
+  const [replyValue, setReplyValue] = useState("");
 
   const toggleCommentLike = (id: string | number) => {
     setLikedComments((prev) => {
@@ -82,7 +85,16 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
       return next;
     });
   };
-
+  const handleReply = async (data: any) => {
+    try {
+      const result = await addComments.mutateAsync({
+        content: data.content,
+        sourceId: data.commentId,
+        commentType: "replie",
+      });
+      console.log(result);
+    } catch (error) {}
+  };
   const TEXT_THRESHOLD = 160;
   const isLongText = post.content.length > TEXT_THRESHOLD;
   const displayContent =
@@ -113,17 +125,25 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
 
             {post.feeling && (
               <div className="flex items-center gap-1 text-muted-foreground/80 text-[11px] sm:text-xs border-l border-border/50 pl-1.5 ml-0.5">
-                <span className="text-muted-foreground/50 font-normal">is feeling</span>
+                <span className="text-muted-foreground/50 font-normal">
+                  is feeling
+                </span>
                 <span className="font-medium text-foreground/80 flex items-center gap-1">
-                  <span className="text-sm leading-none">{post.feeling.emoji}</span>
-                  <span className="hidden sm:inline lowercase">{post.feeling.label}</span>
+                  <span className="text-sm leading-none">
+                    {post.feeling.emoji}
+                  </span>
+                  <span className="hidden sm:inline lowercase">
+                    {post.feeling.label}
+                  </span>
                 </span>
               </div>
             )}
           </div>
 
           <div className="flex items-center gap-1.5 mt-1 text-muted-foreground/60 text-[11px]">
-            <span className="truncate font-medium">{post.author.profession}</span>
+            <span className="truncate font-medium">
+              {post.author.profession}
+            </span>
             <span className="text-muted-foreground/30">•</span>
             <span className="whitespace-nowrap">
               {moment(post.createdAt).fromNow()}
@@ -240,16 +260,25 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
                               : "text-muted-foreground hover:text-rose-500"
                           }`}
                         >
-                          Like {comment.likesCount && comment.likesCount > 0 && (
-                            <span className="font-medium opacity-80">{formatNumber(comment.likesCount + (likedComments.has(comment.id) ? 1 : 0))}</span>
+                          Like{" "}
+                          {comment.likesCount && comment.likesCount > 0 && (
+                            <span className="font-medium opacity-80">
+                              {formatNumber(
+                                comment.likesCount +
+                                  (likedComments.has(comment.id) ? 1 : 0),
+                              )}
+                            </span>
                           )}
                         </button>
                         <button
                           onClick={() => setReplyingToCommentId(comment.id)}
                           className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1"
                         >
-                          Reply {comment.repliesCount && comment.repliesCount > 0 && (
-                            <span className="font-medium opacity-80">{formatNumber(comment.repliesCount)}</span>
+                          Reply{" "}
+                          {comment.repliesCount && comment.repliesCount > 0 && (
+                            <span className="font-medium opacity-80">
+                              {formatNumber(comment.repliesCount)}
+                            </span>
                           )}
                         </button>
                       </div>
@@ -264,6 +293,18 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
                           </div>
                           <div className="relative flex-1">
                             <Input
+                              value={replyValue}
+                              onChange={(e) => setReplyValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && replyValue.trim()) {
+                                  handleReply({
+                                    commentId: comment.id,
+                                    content: replyValue,
+                                  });
+                                  setReplyValue("");
+                                  setReplyingToCommentId(null);
+                                }
+                              }}
                               autoFocus
                               placeholder={`Reply to ${comment.author.name}...`}
                               className="h-8 rounded-full bg-muted/60 border-none px-3 text-[10px] focus-visible:ring-1 focus-visible:ring-primary/20"
@@ -272,7 +313,10 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setReplyingToCommentId(null)}
+                            onClick={() => {
+                              setReplyingToCommentId(null);
+                              setReplyValue("");
+                            }}
                             className="h-8 text-[10px] px-2 text-muted-foreground hover:text-foreground"
                           >
                             Cancel

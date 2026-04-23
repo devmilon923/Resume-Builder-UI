@@ -93,3 +93,9 @@ export const genderOptions: GenderEmojiChoiceOption[] = [
     description: "Select if you are others",
   },
 ];
+
+export const commentValidation = z.object({
+  content: z.string().min(1, "Comment content is required"),
+  sourceId: z.number().min(1, "Comment source id is required"),
+  commentType: z.enum(["post", "replie"]),
+});

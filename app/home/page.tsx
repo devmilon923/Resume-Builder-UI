@@ -83,8 +83,8 @@ const DUMMY_POSTS: Post[] = [
 
 const HomePage: React.FC = () => {
   const { data, isLoading } = useGetAllPosts();
-  // const posts: Post[] = data;
-  const posts: Post[] = DUMMY_POSTS;
+  const posts: Post[] = data;
+  // const posts: Post[] = DUMMY_POSTS;
   console.log("posts", posts);
 
   if (isLoading) {

@@ -1,6 +1,7 @@
 import axios from "axios";
-import { TLogin, TRegister } from "./validations";
+import { commentValidation, TLogin, TRegister } from "./validations";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import z from "zod";
 
 const backendURL = process.env.NEXT_PUBLIC_Backend_URL;
 
@@ -173,6 +174,21 @@ export const useGetAllPosts = () => {
     queryFn: async () => {
       const result = await api.get("/post");
       return result.data.data;
+    },
+    enabled: typeof window !== "undefined",
+    retry: false,
+  });
+};
+
+export const useAddComment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: z.infer<typeof commentValidation>) => {
+      const result = await api.post("/post/comments", data);
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["comments"] });
     },
   });
 };
