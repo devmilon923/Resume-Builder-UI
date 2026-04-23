@@ -58,7 +58,7 @@ export const HomeNavbar = () => {
         <div className="flex h-14 items-center">
           {NAV_ITEMS.map((item, index) => {
             const isProfile = "isProfile" in item && item.isProfile;
-            const href = "href" in item ? item.href : "/home/profile";
+            const href = ("href" in item ? item.href : "/home/profile") || "/home/profile";
             const label = "label" in item ? item.label : "";
             const isActive = pathname === href;
             const Icon = item.icon;
