@@ -171,7 +171,7 @@ export const useGetAllPosts = () => {
   return useQuery({
     queryKey: ["posts"],
     queryFn: async () => {
-      const result = await api.get("/post/get-all");
+      const result = await api.get("/post");
       return result.data.data;
     },
   });

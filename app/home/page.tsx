@@ -1,97 +1,100 @@
 "use client";
-
 import React from "react";
 import { SocialPostCard, Post } from "@/components/social-post-card";
 import { CreatePost } from "@/components/create-post";
+import { useGetAllPosts } from "@/utils/api/endpoints";
+import { Loader2 } from "lucide-react";
 
 const DUMMY_POSTS: Post[] = [
   {
     id: 1,
     author: {
-      name: "Alex Thompson",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-      isVerified: true,
+      name: "Sarah Jenkins",
+      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+      isVerifyed: true,
+      profession: "Senior Product Designer",
     },
-    feeling: { emoji: "🚀", label: "Productive" },
-    content:
-      "Just finished building a new feature using Next.js and Tailwind CSS. The developer experience is absolutely incredible! 🚀 \n\nClean code and intuitive components make a huge difference in productivity. #webdev #coding #frontend",
-    timestamp: "2h ago",
-    likes: 124,
-    comments: 18,
+    content: "Just finished the new design system documentation! It's been a long journey but seeing everything come together is so satisfying. Can't wait for the team to start using it. 🚀 #DesignOps #ProductDesign",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+    likesCount: 1240,
+    commentsCount: 42,
+    feeling: {
+      emoji: "😊",
+      label: "accomplished",
+    },
+    comments: [
+      {
+        id: 101,
+        author: {
+          name: "David Chen",
+          image: "https://api.dicebear.com/7.x/avataaars/svg?seed=David",
+        },
+        content: "This looks incredible! The attention to detail in the spacing scales is exactly what we needed.",
+        createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        likesCount: 12,
+        repliesCount: 4,
+      },
+    ],
   },
   {
     id: 2,
     author: {
-      name: "Sarah Chen",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-      isVerified: false,
+      name: "Marcus Aurelius",
+      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus",
+      isVerifyed: false,
+      profession: "Full Stack Developer",
     },
-    feeling: { emoji: "✨", label: "Inspired" },
-    content:
-      "Design systems are not just about components; they are about communication and consistency across teams. Clean UI is happy UI. ✨\n\nReally enjoying the process of refining our internal design language.",
-    timestamp: "5h ago",
-    likes: 89,
-    comments: 12,
+    content: "Has anyone tried the new React 19 features? The 'use' hook is a game changer for data fetching. No more useEffect boilerplate for simple async operations!",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
+    likesCount: 85,
+    commentsCount: 3, // Won't show comment section
   },
   {
     id: 3,
     author: {
-      name: "Marcus Aurelius",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus",
-      isVerified: true,
+      name: "Elena Rodriguez",
+      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena",
+      isVerifyed: true,
+      profession: "Creative Director",
     },
-    feeling: { emoji: "🏛️", label: "Stoic" },
-    content:
-      "Concentrate every minute like a Roman—like a man—on doing what's in front of you with precise and genuine seriousness, tenderly, willingly, with justice.",
-    timestamp: "1d ago",
-    likes: 2450,
-    comments: 432,
-  },
-  {
-    id: 4,
-    author: {
-      name: "Product Hunt",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=ProductHunt",
-      isVerified: true,
+    content: "Monday mornings are for fresh coffee and even fresher ideas. ☕️✨",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+    likesCount: 450,
+    commentsCount: 12,
+    feeling: {
+      emoji: "☕️",
+      label: "caffeinated",
     },
-    feeling: { emoji: "🤔", label: "Curious" },
-    content:
-      "What's the best tool you've discovered this week? Share your finds below! 👇",
-    timestamp: "4h ago",
-    likes: 56,
-    comments: 89,
-  },
-  {
-    id: 5,
-    author: {
-      name: "David Heinemeier Hansson",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=DHH",
-      isVerified: true,
-    },
-    feeling: { emoji: "🧘", label: "Focused" },
-    content:
-      "The best code is no code at all. But if you must write it, make it count. Simplify until it's impossible to make it any simpler. That's the secret to longevity in software.",
-    timestamp: "6h ago",
-    likes: 1890,
-    comments: 156,
-  },
-  {
-    id: 6,
-    author: {
-      name: "Tech Chronicles",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Tech",
-      isVerified: true,
-    },
-    feeling: { emoji: "⚡", label: "Excited" },
-    content:
-      "The evolution of web development has been staggering. From simple HTML pages to complex single-page applications, and now to server-side rendering with React Server Components. It's a journey of constant learning and adaptation.",
-    timestamp: "12h ago",
-    likes: 420,
-    comments: 65,
+    comments: [
+      {
+        id: 201,
+        author: {
+          name: "James Wilson",
+          image: "https://api.dicebear.com/7.x/avataaars/svg?seed=James",
+        },
+        content: "Couldn't agree more! The best way to start the week.",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        likesCount: 5,
+        repliesCount: 2,
+      },
+    ],
   },
 ];
 
 const HomePage: React.FC = () => {
+  const { data, isLoading } = useGetAllPosts();
+  // const posts: Post[] = data;
+  const posts: Post[] = DUMMY_POSTS;
+  console.log("posts", posts);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="size-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 pb-10">
       <CreatePost />
@@ -106,7 +109,7 @@ const HomePage: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-6">
-          {DUMMY_POSTS.map((post) => (
+          {posts?.map((post) => (
             <SocialPostCard key={post.id} post={post} />
           ))}
         </div>

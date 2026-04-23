@@ -32,17 +32,20 @@ export const CreatePost = () => {
 
   const handlePost = async () => {
     if (!content.trim()) return;
+    if (!selectedFeeling) return;
     console.log("Posting:");
     const data = { content, feeling: selectedFeeling };
     // Reset
+
     try {
       const result = await createPost.mutateAsync(data);
       if (result) {
-        console.log("Post created successfully");
+        setContent("");
+        setSelectedFeeling(null);
       }
-    } catch (error) {}
-    setContent("");
-    setSelectedFeeling(null);
+    } catch (error: any) {
+      console.log(error.message);
+    }
   };
 
   return (
@@ -72,7 +75,7 @@ export const CreatePost = () => {
                     onClick={() => setSelectedFeeling(null)}
                     className="ml-1 p-0.5 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground"
                   >
-                    <X className="size-3" />
+                    <X className="size-3 cursor-pointer" />
                   </button>
                 </div>
               )}
@@ -85,7 +88,7 @@ export const CreatePost = () => {
                     variant="ghost"
                     size="icon-sm"
                     className={cn(
-                      "text-muted-foreground hover:text-amber-500 hover:bg-amber-500/5 cursor-pointer",
+                      "text-muted-foreground  hover:text-amber-500 hover:bg-amber-500/5 cursor-pointer",
                       showFeelings && "text-amber-500 bg-amber-500/5",
                     )}
                     onClick={() => setShowFeelings(!showFeelings)}
@@ -103,7 +106,7 @@ export const CreatePost = () => {
                               setSelectedFeeling(f);
                               setShowFeelings(false);
                             }}
-                            className="flex flex-col items-center gap-1 rounded-lg p-2 transition-colors hover:bg-muted"
+                            className="flex  flex-col items-center gap-1 rounded-lg p-2 transition-colors hover:bg-muted"
                           >
                             <span className="text-xl">{f.emoji}</span>
                             <span className="text-[10px] font-medium text-muted-foreground">
@@ -116,7 +119,7 @@ export const CreatePost = () => {
                   )}
                 </div>
 
-                <div className="h-4 w-px bg-border/60 mx-1" />
+                <div className="h-4 w-px bg-border/60 mx-1 " />
 
                 <Button
                   variant="ghost"
@@ -132,8 +135,8 @@ export const CreatePost = () => {
 
               <Button
                 onClick={handlePost}
-                disabled={!content.trim()}
-                className="gap-2 px-6 rounded-full shadow-md shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50"
+                disabled={!content.trim() || !selectedFeeling}
+                className="gap-2 px-6 cursor-pointer rounded-full shadow-md shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50"
               >
                 <span className="font-semibold">Post</span>
                 <Send className="size-3.5" />
