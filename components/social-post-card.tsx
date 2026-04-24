@@ -27,7 +27,7 @@ interface Author {
 
 export interface Comment {
   id: string | number;
-  author: {
+  user: {
     name: string;
     image: string;
   };
@@ -231,8 +231,8 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
                   <div className="flex gap-2.5">
                     <div className="size-7 shrink-0 overflow-hidden rounded-full border border-border">
                       <img
-                        src={comment.author.image}
-                        alt={comment.author.name}
+                        src={comment.user.image}
+                        alt={comment.user.name}
                         className="h-full w-full object-cover"
                       />
                     </div>
@@ -240,7 +240,7 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
                       <div className="inline-block rounded-2xl bg-muted/50 px-3 py-2 max-w-[90%]">
                         <div className="flex items-center justify-between gap-4">
                           <span className="text-[11px] font-bold text-foreground">
-                            {comment.author.name}
+                            {comment.user.name}
                           </span>
                           <span className="text-[10px] text-muted-foreground font-medium">
                             {moment(comment.createdAt).fromNow(true)}
@@ -306,7 +306,7 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
                                 }
                               }}
                               autoFocus
-                              placeholder={`Reply to ${comment.author.name}...`}
+                              placeholder={`Reply to ${comment.user.name}...`}
                               className="h-8 rounded-full bg-muted/60 border-none px-3 text-[10px] focus-visible:ring-1 focus-visible:ring-primary/20"
                             />
                           </div>
