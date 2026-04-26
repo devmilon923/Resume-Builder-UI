@@ -140,7 +140,7 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
           onClick={handleFollow}
           variant={isFollowing ? "outline" : "default"}
           size="sm"
-          className={`h-9 px-4 font-bold rounded-full transition-all duration-300 shadow-sm ${
+          className={`h-9 px-4 cursor-pointer font-bold rounded-full transition-all duration-300 shadow-sm ${
             isFollowing
               ? "border-primary/20 hover:bg-primary/5 text-primary"
               : "shadow-primary/20 hover:-translate-y-px active:translate-y-0"
