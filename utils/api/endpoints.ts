@@ -180,6 +180,44 @@ export const useGetAllPosts = () => {
   });
 };
 
+export const useGetAllComments = (
+  sourceId: number | undefined | string | null,
+  commentType: any,
+) => {
+  return useQuery({
+    queryKey: ["comments", sourceId, commentType],
+
+    queryFn: async () => {
+      if (!sourceId) return [];
+      const result = await api.get(
+        `/post/comments?sourceId=${sourceId}&commentType=${commentType}`,
+      );
+      return result.data.data;
+    },
+
+    enabled: !!sourceId && typeof window !== "undefined",
+    retry: false,
+  });
+};
+export const useGetAllReplie = (
+  sourceId: number | undefined | string | null,
+  commentType: any,
+) => {
+  return useQuery({
+    queryKey: ["replie", sourceId, commentType],
+
+    queryFn: async () => {
+      if (!sourceId) return [];
+      const result = await api.get(
+        `/post/comments?sourceId=${sourceId}&commentType=${commentType}`,
+      );
+      return result.data.data;
+    },
+
+    enabled: !!sourceId && typeof window !== "undefined",
+    retry: false,
+  });
+};
 export const useAddComment = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -189,6 +227,19 @@ export const useAddComment = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments"] });
+    },
+  });
+};
+
+export const useAddReplie = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: z.infer<typeof commentValidation>) => {
+      const result = await api.post("/post/comments", data);
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["replie"] });
     },
   });
 };
