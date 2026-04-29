@@ -12,22 +12,7 @@ import {
   useGetAllComments,
   useGetAllReplie,
 } from "@/utils/api/endpoints";
-
-/**
- * SIMULATED API SERVICE
- */
-const commentService = {
-  getCommentsByPostId: async (postId: string | number): Promise<Comment[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    return dummyComments;
-  },
-  getRepliesByCommentId: async (
-    commentId: string | number,
-  ): Promise<Comment[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    return dummyReplies[commentId] || [];
-  },
-};
+import { useAuth } from "@/providers/AuthContext";
 
 interface CommentSidebarProps {
   post: Post | null;
@@ -55,15 +40,19 @@ export const CommentSidebar: React.FC<CommentSidebarProps> = ({
 
   const selectedComment = comments.find((c) => c.id === selectedCommentId);
   const { data: mainComments, isLoading } = useGetAllComments(post?.id, "post");
-  const { data: replieComments, isLoading: replieLoading } = useGetAllReplie(
-    selectedCommentId,
-    "replie",
-  );
-
+  const { data: replieComments, isLoading: replieLoading } =
+    useGetAllReplie(selectedCommentId);
+  const { user } = useAuth();
+  // console.log(user);
+  const mainCommentsData =
+    mainComments?.pages?.flatMap((page: any) => page.data) || [];
+  const repliesData =
+    replieComments?.pages?.flatMap((page: any) => page.data) || [];
+  console.log(replieComments, "repliesData");
   useEffect(() => {
-    if (isOpen && mainComments && !isLoading) {
+    if (isOpen && mainCommentsData && !isLoading) {
       setIsLoadingComments(true);
-      setComments(mainComments);
+      setComments(mainCommentsData);
       setIsLoadingComments(false);
     } else {
       setSelectedCommentId(null);
@@ -73,9 +62,9 @@ export const CommentSidebar: React.FC<CommentSidebarProps> = ({
   }, [isOpen, post?.id, isLoading, mainComments]);
 
   useEffect(() => {
-    if (selectedCommentId && !replieLoading && replieComments) {
+    if (selectedCommentId && !replieLoading && repliesData) {
       setIsLoadingReplies(true);
-      setReplies(replieComments);
+      setReplies(repliesData);
       setIsLoadingReplies(false);
     } else {
       setReplies([]);
@@ -91,7 +80,20 @@ export const CommentSidebar: React.FC<CommentSidebarProps> = ({
         content: commentInput,
         commentType: "post",
       });
-      console.log("data", data);
+      setComments([
+        ...mainCommentsData,
+        {
+          user: {
+            name: user?.name,
+            image: user?.image,
+          },
+          createdAt: new Date().toISOString(),
+          content: commentInput,
+          id: data?.data?.id,
+          likesCount: 0,
+          commentCount: 0,
+        },
+      ]);
       setCommentInput("");
     } catch (error) {
       console.log("error", error);
@@ -106,7 +108,21 @@ export const CommentSidebar: React.FC<CommentSidebarProps> = ({
         content: replyInput,
         commentType: "replie",
       });
-      console.log("data", data);
+      setReplies([
+        ...repliesData,
+        {
+          user: {
+            name: user?.name,
+            image: user?.image,
+          },
+          createdAt: new Date().toISOString(),
+          content: replyInput,
+          id: data?.data?.id,
+          likesCount: 0,
+          commentCount: 0,
+        },
+      ]);
+
       setCommentInput("");
     } catch (error) {
       console.log("error", error);

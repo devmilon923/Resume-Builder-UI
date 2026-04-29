@@ -177,15 +177,11 @@ export const useGetAllPosts = (limit: number) => {
   return useInfiniteQuery({
     queryKey: ["posts", { limit }],
     queryFn: async ({ pageParam = 0 }) => {
-      const result = await api.get(
-        `/post?limit=${limit}&lastCursor=${pageParam}`,
-      );
+      const result = await api.get(`/post?limit=${limit}&pc=${pageParam}`);
       return result.data;
     },
     initialPageParam: 0,
-    
-    getNextPageParam: (lastPage) =>
-      lastPage.cursor !== null ? lastPage.cursor : null,
+    getNextPageParam: (lastPage) => lastPage?.cursor,
     enabled: typeof window !== "undefined",
     retry: false,
   });
@@ -194,37 +190,39 @@ export const useGetAllPosts = (limit: number) => {
 export const useGetAllComments = (
   sourceId: number | undefined | string | null,
   commentType: any,
+  limit: number = 10,
 ) => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ["comments", sourceId, commentType],
 
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 0 }) => {
       if (!sourceId) return [];
       const result = await api.get(
-        `/post/comments?sourceId=${sourceId}&commentType=${commentType}`,
+        `/post/comments?sourceId=${sourceId}&commentType=${commentType}&limit=${limit}&pc=${pageParam}`,
       );
-      return result.data.data;
+      return result.data;
     },
-
+    getNextPageParam: (lastPage) => lastPage?.cursor,
+    initialPageParam: 0,
     enabled: !!sourceId && typeof window !== "undefined",
     retry: false,
   });
 };
 export const useGetAllReplie = (
   sourceId: number | undefined | string | null,
-  commentType: any,
+  limit: number = 10,
 ) => {
-  return useQuery({
-    queryKey: ["replie", sourceId, commentType],
-
-    queryFn: async () => {
+  return useInfiniteQuery({
+    queryKey: ["replie", sourceId],
+    queryFn: async ({ pageParam = 0 }) => {
       if (!sourceId) return [];
       const result = await api.get(
-        `/post/comments?sourceId=${sourceId}&commentType=${commentType}`,
+        `/post/comments?sourceId=${sourceId}&commentType=replie&limit=${limit}&pc=${pageParam}`,
       );
-      return result.data.data;
+      return result.data;
     },
-
+    getNextPageParam: (lastPage) => lastPage?.cursor,
+    initialPageParam: 0,
     enabled: !!sourceId && typeof window !== "undefined",
     retry: false,
   });
@@ -237,7 +235,7 @@ export const useAddComment = () => {
       return result.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["comments"] });
+      // queryClient.invalidateQueries({ queryKey: ["comments"] });
     },
   });
 };
@@ -250,7 +248,7 @@ export const useAddReplie = () => {
       return result.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["replie"] });
+      // queryClient.invalidateQueries({ queryKey: ["replie"] });
     },
   });
 };
