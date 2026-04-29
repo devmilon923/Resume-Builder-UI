@@ -1,6 +1,11 @@
 import axios from "axios";
 import { commentValidation, TLogin, TRegister } from "./validations";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import z from "zod";
 
 const backendURL = process.env.NEXT_PUBLIC_Backend_URL;
@@ -168,13 +173,19 @@ export const useCreatePost = () => {
   });
 };
 
-export const useGetAllPosts = () => {
-  return useQuery({
-    queryKey: ["posts"],
-    queryFn: async () => {
-      const result = await api.get("/post");
-      return result.data.data;
+export const useGetAllPosts = (limit: number) => {
+  return useInfiniteQuery({
+    queryKey: ["posts", { limit }],
+    queryFn: async ({ pageParam = 0 }) => {
+      const result = await api.get(
+        `/post?limit=${limit}&lastCursor=${pageParam}`,
+      );
+      return result.data;
     },
+    initialPageParam: 0,
+    
+    getNextPageParam: (lastPage) =>
+      lastPage.cursor !== null ? lastPage.cursor : null,
     enabled: typeof window !== "undefined",
     retry: false,
   });
